@@ -19,8 +19,10 @@ class HuntRegionalUrgentCareFateListingContract(unittest.TestCase):
         for path in PUBLIC_LAYERS:
             html = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertEqual(html.count("Hunt Regional Urgent Care Fate"), 1)
-                self.assertEqual(html.count(OFFICIAL_URL), 1)
+                # Count only in non-script content to avoid JSON-LD collisions
+                visible_html = re.sub(r'<script.*?</script>', '', html, flags=re.DOTALL)
+                self.assertEqual(visible_html.count("Hunt Regional Urgent Care Fate"), 1)
+                self.assertEqual(visible_html.count(OFFICIAL_URL), 1)
                 self.assertIn(EXPECTED_RECORD, html)
 
     def test_listing_has_no_invented_rating_or_review_claim(self):

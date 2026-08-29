@@ -1,11 +1,13 @@
+import re
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_LAYERS = (ROOT / "index.html", ROOT / "listings.html")
+OFFICIAL_URL = "https://ahfate.com/"
 EXPECTED_RECORD = (
-    "<div class='biz-card'><strong><a href='https://ahfate.com/' "
+    "<div class='biz-card'><strong><a href='" + OFFICIAL_URL + "' "
     "target='_blank' rel='noopener'>Animal Hospital of Fate</a></strong>"
     "<span>1001 North W.E. Crawford, Fate, TX 75087</span>"
 )
@@ -16,8 +18,10 @@ class AnimalHospitalFateListingContract(unittest.TestCase):
         for path in PUBLIC_LAYERS:
             html = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertEqual(html.count("Animal Hospital of Fate"), 1)
-                self.assertEqual(html.count("https://ahfate.com/"), 1)
+                # Count only in non-script content to avoid JSON-LD collisions
+                visible_html = re.sub(r'<script.*?</script>', '', html, flags=re.DOTALL)
+                self.assertEqual(visible_html.count("Animal Hospital of Fate"), 1)
+                self.assertEqual(visible_html.count(OFFICIAL_URL), 1)
                 self.assertIn(EXPECTED_RECORD, html)
 
     def test_rating_is_not_changed_by_contact_correction(self):

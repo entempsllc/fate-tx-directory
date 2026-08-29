@@ -1,11 +1,13 @@
+import re
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_LAYERS = (ROOT / "index.html", ROOT / "listings.html")
+OFFICIAL_URL = "https://www.hotworx.net/studio/fate"
 EXPECTED_RECORD = (
-    "<div class='biz-card'><strong><a href='https://www.hotworx.net/studio/fate' "
+    "<div class='biz-card'><strong><a href='" + OFFICIAL_URL + "' "
     "target='_blank' rel='noopener'>HOTWORX - Fate, TX</a></strong>"
     "<span>5000 E. I-30 Suite 160, Fate, TX 75189</span>"
 )
@@ -16,8 +18,10 @@ class HotworxFateListingContract(unittest.TestCase):
         for path in PUBLIC_LAYERS:
             html = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertEqual(html.count("HOTWORX - Fate, TX"), 1)
-                self.assertEqual(html.count("https://www.hotworx.net/studio/fate"), 1)
+                # Count only in non-script content to avoid JSON-LD collisions
+                visible_html = re.sub(r'<script.*?</script>', '', html, flags=re.DOTALL)
+                self.assertEqual(visible_html.count("HOTWORX - Fate, TX"), 1)
+                self.assertEqual(visible_html.count(OFFICIAL_URL), 1)
                 self.assertIn(EXPECTED_RECORD, html)
 
     def test_no_indexing_control_files_changed_for_listing_correction(self):
