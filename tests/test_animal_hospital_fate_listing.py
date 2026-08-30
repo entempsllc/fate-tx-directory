@@ -24,11 +24,12 @@ class AnimalHospitalFateListingContract(unittest.TestCase):
                 self.assertEqual(visible_html.count(OFFICIAL_URL), 1)
                 self.assertIn(EXPECTED_RECORD, html)
 
-    def test_rating_is_not_changed_by_contact_correction(self):
+    def test_rating_is_removed_for_trust_repair(self):
         for path in PUBLIC_LAYERS:
             html = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertIn(EXPECTED_RECORD + "<span>4.3 stars</span></div>", html)
+                self.assertIn(EXPECTED_RECORD, html)
+                self.assertNotIn("4.3 stars", html)
 
     def test_no_indexing_control_files_changed_for_listing_correction(self):
         self.assertTrue((ROOT / "robots.txt").is_file())
